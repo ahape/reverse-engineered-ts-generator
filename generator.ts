@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+/* eslint-disable @typescript-eslint/space-before-function-paren */
 // NOTES
 // -----
 // One way to think about this is that a "generator" is the abstraction (function*)
@@ -23,6 +26,7 @@ type IteratorThrowArgs = Error
 type IteratorReturnArgs = Result
 /** This is the data returned from the iterator */
 type Result = any
+type Func = (...args: any[]) => any
 /** A "program counter" for a location w/in a generator body */
 type Label = number
 type ResultIterator = Iterator<Result>
@@ -46,10 +50,10 @@ class State {
   label: Label = 0
   sendArg?: OpcodeAndResult
   /** A method that returns or throws the current completion value */
-  sent () {
+  sent(): Result {
     const arg = this.sendArg
     this.sendArg = undefined
-    if (!arg) {
+    if (arg == null) {
       return new Error('Nothing to send')
     }
     const [opcode, result] = arg
@@ -80,7 +84,7 @@ class GeneratorCore {
 
   constructor (
     public thisArg: any,
-    public body: Function
+    public body: Func
   ) {
     /* ... */
   }
@@ -111,7 +115,7 @@ class GeneratorCore {
           }
           op = [opContains(op[0], Opcode.RETURN), subIteratorResult.value]
         }
-
+        let tcfLabels: TryCatchFinallyLabels | undefined
         const opcode = op[0]
         switch (opcode) {
           // NEXT and THROW both queue up the state.sent() value and
@@ -148,7 +152,7 @@ class GeneratorCore {
             continue // Re-enter engine with next op
 
           default:
-            const tcfLabels = this.getTcfLabels()
+            tcfLabels = this.getTcfLabels()
 
             // If there's no more t/c/f entries, and we're
             // this is a CATCH or RETURN, then it's time to
@@ -271,15 +275,15 @@ class GeneratorCore {
     }
     let iteratorFn: IteratorFunction | undefined
     if (opContains(opcode, Opcode.RETURN)) {
-      iteratorFn = this.subIterator.return
+      iteratorFn = this.subIterator.return?.bind(this.subIterator)
     } else if (opNotNext(opcode)) {
       if (this.subIterator.throw) {
-        iteratorFn = this.subIterator.throw
+        iteratorFn = this.subIterator.throw.bind(this.subIterator)
       } else {
-        this.subIterator.return?.call(this.subIterator)
+        this.subIterator.return?.()
       }
     } else {
-      iteratorFn = this.subIterator.next
+      iteratorFn = this.subIterator.next.bind(this.subIterator)
     }
     if (iteratorFn) {
       ret.result = iteratorFn.call(this.subIterator, op[1])
@@ -306,7 +310,7 @@ function opNotNext (opcode: Opcode): boolean {
   return opcode > Opcode.NEXT
 }
 
-export const generator = (thisArg: any, body: Function): ResultIterator => {
+export const generator = (thisArg: any, body: Func): ResultIterator => {
   const core = new GeneratorCore(thisArg, body)
   return {
     next: (val?: Result) => core.step([Opcode.NEXT, val])
