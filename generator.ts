@@ -102,7 +102,7 @@ class GeneratorCore {
       try {
         this.isGeneratorExecuting = true;
 
-        let subIteratorResult = this.tryRunSubIterator(op);
+        const subIteratorResult = this.tryRunSubIterator(op);
         if (subIteratorResult) {
           if (subIteratorResult.done) {
             return subIteratorResult;
@@ -162,7 +162,7 @@ class GeneratorCore {
 
             // BREAK op will return the next label (program counter)
             if (opEquals(opcode, Opcode.BREAK)) {
-              let nextLabel = <Label>op[1];
+              const nextLabel = <Label>op[1];
               if (
                 // If this is a normal BREAK (not within t/c/f)
                 !tcfLabels || // ...or...
@@ -264,7 +264,7 @@ class GeneratorCore {
     if (!this.subIterator) {
       throw new Error("resultIterator not defined");
     }
-    let ret: { return: boolean; result?: Result } = {
+    const ret: { return: boolean; result?: Result } = {
       return: false,
     };
     let iteratorFn: IteratorFunction | undefined;

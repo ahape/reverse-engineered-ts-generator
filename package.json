@@ -4,6 +4,8 @@
     "@typescript-eslint/parser": "^7.2.0",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
-    "typescript": "^5.4.2"
-  }
+    "typescript": "^5.4.2",
+    "typescript-eslint": "^7.2.0"
+  },
+  "type": "module"
 }
