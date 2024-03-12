@@ -304,65 +304,9 @@ function opNotNext(opcode: Opcode): boolean {
   return opcode > Opcode.NEXT;
 }
 
-const generatorFactory = (thisArg: any, body: Function): ResultIterator => {
+export const generator = (thisArg: any, body: Function): ResultIterator => {
   const core = new GeneratorCore(thisArg, body);
   return {
     next: (val?: Result) => core.step([Opcode.NEXT, val]),
   };
 };
-/* (and example generator)
-function* fun(a: number) {
-    if (a > 1) {
-        yield "a1";
-    } else {
-        yield "a2"
-    }
-    try {
-        if (Math.round(a) > 3) {
-            yield "b";
-        }
-        return "c";
-    } catch (e) {
-        console.log(e);
-        throw e;
-    } finally {
-        console.debug("here");
-    }
-}
-(compiled result of the above example generator) */
-function fun(a: number) {
-  let e_1: Error;
-  return generatorFactory(this, function (_a: State) {
-    switch (_a.label) {
-      case 0:
-        if (!(a > 1)) return [3 /*break*/, 2];
-        return [4 /*yield*/, "a1"];
-      case 1:
-        _a.sent();
-        return [3 /*break*/, 4];
-      case 2:
-        return [4 /*yield*/, "a2"];
-      case 3:
-        _a.sent();
-        _a.label = 4;
-      case 4:
-        _a.trys.push([4, 7, 8, 9]);
-        if (!(Math.round(a) > 3)) return [3 /*break*/, 6];
-        return [4 /*yield*/, "b"];
-      case 5:
-        _a.sent();
-        _a.label = 6;
-      case 6:
-        return [2 /*return*/, "c"];
-      case 7:
-        e_1 = _a.sent() as Error;
-        console.log(e_1);
-        throw e_1;
-      case 8:
-        console.debug("here");
-        return [7 /*endfinally*/];
-      case 9:
-        return [2 /*return*/];
-    }
-  });
-}
