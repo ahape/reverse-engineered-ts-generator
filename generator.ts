@@ -18,79 +18,81 @@ enum Opcode {
   CATCH /*******/ = 0b110,
   ENDFINALLY /**/ = 0b111,
 }
-type IteratorNextArgs = Parameters<Iterator<Result>["next"]>;
-type IteratorThrowArgs = Error;
-type IteratorReturnArgs = Result;
+type IteratorNextArgs = Parameters<Iterator<Result>['next']>
+type IteratorThrowArgs = Error
+type IteratorReturnArgs = Result
 /** This is the data returned from the iterator */
-type Result = any;
+type Result = any
 /** A "program counter" for a location w/in a generator body */
-type Label = number;
-type ResultIterator = Iterator<Result>;
+type Label = number
+type ResultIterator = Iterator<Result>
 /** next() or throw() or return() */
 type IteratorFunction = (
   args: IteratorNextArgs | IteratorThrowArgs | IteratorReturnArgs,
-) => IteratorResult<Result>;
-type OpcodeAndResult = [Opcode, Result];
-type TryCatchFinallyLabels = {
-  try: Label;
-  catch: Label;
-  finally: Label;
-  endfinally: Label;
-};
+) => IteratorResult<Result>
+type OpcodeAndResult = [Opcode, Result]
+interface TryCatchFinallyLabels {
+  try: Label
+  catch: Label
+  finally: Label
+  endfinally: Label
+}
 /**
  * Persistent state for the generator that is shared between the generator's
  * internals as well as the generator body
  */
 class State {
   /** The next location to resume evaluation of the generator body */
-  label: Label = 0;
-  sendArg?: OpcodeAndResult;
+  label: Label = 0
+  sendArg?: OpcodeAndResult
   /** A method that returns or throws the current completion value */
-  sent() {
-    const arg = this.sendArg;
-    this.sendArg = undefined;
+  sent () {
+    const arg = this.sendArg
+    this.sendArg = undefined
     if (!arg) {
-      return new Error("Nothing to send");
+      return new Error('Nothing to send')
     }
-    const [opcode, result] = arg;
+    const [opcode, result] = arg
     if (opContains(opcode, Opcode.THROW)) {
-      throw result;
+      throw result
     }
-    return result;
+    return result
   }
+
   /** A stack of try/catch/finally/endfinally labels */
   trys: Array<
-    [
-      Label,
-      Label | undefined, // There may be no "catch" block
-      Label | undefined, // There may be no "finally" block
-      Label,
-    ]
-  > = [];
+  [
+    Label,
+    Label | undefined, // There may be no "catch" block
+    Label | undefined, // There may be no "finally" block
+    Label,
+  ]
+  > = []
+
   /** A stack of pending instructions when inside of a finally block */
-  ops: OpcodeAndResult[] = [];
+  ops: OpcodeAndResult[] = []
 }
 
 class GeneratorCore {
-  isGeneratorExecuting: boolean = false;
-  state: State | undefined = new State();
-  subIterator: ResultIterator | undefined;
+  isGeneratorExecuting: boolean = false
+  state: State | undefined = new State()
+  subIterator: ResultIterator | undefined
 
-  constructor(
+  constructor (
     public thisArg: any,
-    public body: Function,
+    public body: Function
   ) {
     /* ... */
   }
 
-  public step(op: OpcodeAndResult): IteratorResult<Result> {
+  public step (op: OpcodeAndResult): IteratorResult<Result> {
     if (this.isGeneratorExecuting) {
-      throw new Error("Generator is already executing");
+      throw new Error('Generator is already executing')
     }
-    return this.stepEngine(op);
+    return this.stepEngine(op)
   }
 
-  private stepEngine(op: OpcodeAndResult): IteratorResult<Result> {
+  private stepEngine (op: OpcodeAndResult): IteratorResult<Result> {
     // break:
     //     will exit the switch and execute the generator body
     // continue:
@@ -100,17 +102,17 @@ class GeneratorCore {
     //     return value of iter.next()
     while (this.state) {
       try {
-        this.isGeneratorExecuting = true;
+        this.isGeneratorExecuting = true
 
-        const subIteratorResult = this.tryRunSubIterator(op);
+        const subIteratorResult = this.tryRunSubIterator(op)
         if (subIteratorResult) {
           if (subIteratorResult.done) {
-            return subIteratorResult;
+            return subIteratorResult
           }
-          op = [opContains(op[0], Opcode.RETURN), subIteratorResult.value];
+          op = [opContains(op[0], Opcode.RETURN), subIteratorResult.value]
         }
 
-        const opcode = op[0];
+        const opcode = op[0]
         switch (opcode) {
           // NEXT and THROW both queue up the state.sent() value and
           // skip to executing the generator body.
@@ -118,35 +120,35 @@ class GeneratorCore {
           // and the loop will restart
           case Opcode.NEXT:
           case Opcode.THROW:
-            this.state.sendArg = op;
-            break; // Go to next label in the generator body
+            this.state.sendArg = op
+            break // Go to next label in the generator body
 
           // YIELD will return the value, and increment the label
           case Opcode.YIELD:
-            this.state.label++;
+            this.state.label++
             // Return result to caller of generator
             return {
               value: op[1],
-              done: false,
-            };
+              done: false
+            }
 
           // YIELDSTAR will restart the loop, and increment the label.
           // In the subsequent iteration, the sub-iterator will be run
           case Opcode.YIELDSTAR:
-            this.state.label++;
-            this.subIterator = <ResultIterator>op[1];
-            op = [Opcode.NEXT, undefined];
-            continue; // Re-enter engine with next op
+            this.state.label++
+            this.subIterator = op[1] as ResultIterator
+            op = [Opcode.NEXT, undefined]
+            continue // Re-enter engine with next op
 
           // ENDFINALLY marks the exit of a try/catch/finally. "op" will
           // be set to the label right after the finally block
           case Opcode.ENDFINALLY:
-            op = this.state.ops.pop()!;
-            this.state.trys.pop();
-            continue; // Re-enter engine with next op
+            op = this.state.ops.pop()!
+            this.state.trys.pop()
+            continue // Re-enter engine with next op
 
           default:
-            const tcfLabels = this.getTcfLabels();
+            const tcfLabels = this.getTcfLabels()
 
             // If there's no more t/c/f entries, and we're
             // this is a CATCH or RETURN, then it's time to
@@ -156,13 +158,13 @@ class GeneratorCore {
               (opEquals(opcode, Opcode.CATCH) ||
                 opEquals(opcode, Opcode.RETURN))
             ) {
-              this.setWhileLoopConditionToEvaluateFalse();
-              continue; // Think of this as a "break" for the while loop
+              this.setWhileLoopConditionToEvaluateFalse()
+              continue // Think of this as a "break" for the while loop
             }
 
             // BREAK op will return the next label (program counter)
             if (opEquals(opcode, Opcode.BREAK)) {
-              const nextLabel = <Label>op[1];
+              const nextLabel = op[1] as Label
               if (
                 // If this is a normal BREAK (not within t/c/f)
                 !tcfLabels || // ...or...
@@ -171,9 +173,9 @@ class GeneratorCore {
                 (nextLabel > tcfLabels.try && nextLabel < tcfLabels.endfinally)
               ) {
                 // Set the next location to go to in the generator body
-                this.state.label = nextLabel;
+                this.state.label = nextLabel
               }
-              break; // Go to next label in the generator body
+              break // Go to next label in the generator body
             }
 
             // If we're within a t/c/f
@@ -186,127 +188,127 @@ class GeneratorCore {
                 // If we have a "catch" block available to go to
                 this.state.label < tcfLabels.catch
               ) {
-                this.state.label = tcfLabels.catch;
-                this.state.sendArg = op;
-                break; // Go to next label in the generator body
+                this.state.label = tcfLabels.catch
+                this.state.sendArg = op
+                break // Go to next label in the generator body
               }
 
               // (At this point, we've determined that opcode is not CATCH)
 
               // If we have a finally, and we're not there yet, then let's enter it
               if (this.state.label < tcfLabels.finally) {
-                this.state.label = tcfLabels.finally;
-                this.state.ops.push(op);
-                break; // Go to next label in the generator body
+                this.state.label = tcfLabels.finally
+                this.state.ops.push(op)
+                break // Go to next label in the generator body
               }
               // TODO explain this
               // The only place we handle queued ops is w/in ENDFINALLY (?)
               if (tcfLabels.finally) {
-                this.state.ops.pop();
+                this.state.ops.pop()
               }
             }
-            this.state.trys.pop();
+            this.state.trys.pop()
             // TODO what reaches this?
-            continue; // Re-enter engine with next op
+            continue // Re-enter engine with next op
         }
-        op = this.body.call(this.thisArg, this.state);
+        op = this.body.call(this.thisArg, this.state)
       } catch (e) {
-        op = [Opcode.CATCH, e];
-        this.subIterator = undefined;
+        op = [Opcode.CATCH, e]
+        this.subIterator = undefined
       } finally {
-        this.isGeneratorExecuting = false;
+        this.isGeneratorExecuting = false
       }
     }
     if (opContains(op[0], Opcode.YIELDSTAR)) {
-      throw op[1];
+      throw op[1]
     }
     // Return result to caller of generator
     return {
       value: opNotNext(op[0]) ? op[1] : undefined,
-      done: true,
-    };
+      done: true
+    }
   }
 
-  private getTcfLabels(): TryCatchFinallyLabels | undefined {
-    const tcfStacks = this.state?.trys.length ?? 0;
+  private getTcfLabels (): TryCatchFinallyLabels | undefined {
+    const tcfStacks = this.state?.trys.length ?? 0
     if (tcfStacks) {
-      const [t, c, f, endfinally] = this.state!.trys[tcfStacks - 1];
+      const [t, c, f, endfinally] = this.state!.trys[tcfStacks - 1]
       return {
         try: t,
         catch: c ?? 0,
         finally: f ?? 0,
-        endfinally,
-      };
+        endfinally
+      }
     }
-    return undefined;
+    return undefined
   }
 
-  private setWhileLoopConditionToEvaluateFalse(): void {
-    this.state = undefined;
+  private setWhileLoopConditionToEvaluateFalse (): void {
+    this.state = undefined
   }
 
-  private tryRunSubIterator(
-    op: OpcodeAndResult,
+  private tryRunSubIterator (
+    op: OpcodeAndResult
   ): IteratorResult<Result> | undefined {
-    let result: IteratorResult<Result> | undefined;
+    let result: IteratorResult<Result> | undefined
     if (this.subIterator) {
-      result = this.runSubIterator(op).result;
+      result = this.runSubIterator(op).result
     }
-    this.subIterator = undefined;
-    return result;
+    this.subIterator = undefined
+    return result
   }
 
-  private runSubIterator(op: OpcodeAndResult): {
-    return: boolean;
-    result?: Result;
+  private runSubIterator (op: OpcodeAndResult): {
+    return: boolean
+    result?: Result
   } {
-    const opcode = op[0];
+    const opcode = op[0]
     if (!this.subIterator) {
-      throw new Error("resultIterator not defined");
+      throw new Error('resultIterator not defined')
     }
-    const ret: { return: boolean; result?: Result } = {
-      return: false,
-    };
-    let iteratorFn: IteratorFunction | undefined;
+    const ret: { return: boolean, result?: Result } = {
+      return: false
+    }
+    let iteratorFn: IteratorFunction | undefined
     if (opContains(opcode, Opcode.RETURN)) {
-      iteratorFn = this.subIterator.return;
+      iteratorFn = this.subIterator.return
     } else if (opNotNext(opcode)) {
       if (this.subIterator.throw) {
-        iteratorFn = this.subIterator.throw;
+        iteratorFn = this.subIterator.throw
       } else {
-        this.subIterator.return?.call(this.subIterator);
+        this.subIterator.return?.call(this.subIterator)
       }
     } else {
-      iteratorFn = this.subIterator.next;
+      iteratorFn = this.subIterator.next
     }
     if (iteratorFn) {
-      ret.result = iteratorFn.call(this.subIterator, op[1]);
+      ret.result = iteratorFn.call(this.subIterator, op[1])
       if (!ret.result?.done) {
-        ret.return = true;
+        ret.return = true
       }
     }
-    return ret;
+    return ret
   }
 }
 
-function opEquals(a: Opcode, b: Opcode): boolean {
-  return a === b;
+function opEquals (a: Opcode, b: Opcode): boolean {
+  return a === b
 }
 
 // TODO
 // Verify that the AND-ed bits really mean something
 // when compared to other opcodes bits
-function opContains(a: Opcode, b: Opcode): number {
-  return a & b;
+function opContains (a: Opcode, b: Opcode): number {
+  return a & b
 }
 
-function opNotNext(opcode: Opcode): boolean {
-  return opcode > Opcode.NEXT;
+function opNotNext (opcode: Opcode): boolean {
+  return opcode > Opcode.NEXT
 }
 
 export const generator = (thisArg: any, body: Function): ResultIterator => {
-  const core = new GeneratorCore(thisArg, body);
+  const core = new GeneratorCore(thisArg, body)
   return {
-    next: (val?: Result) => core.step([Opcode.NEXT, val]),
-  };
-};
+    next: (val?: Result) => core.step([Opcode.NEXT, val])
+  }
+}
