@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "es6",
+    "moduleResolution": "Node",
     "strict": true
   },
   "include": ["./generator.ts", "./tests/*.ts"]

@@ -1,1 +1,0 @@
-import { generator } from '../generator'

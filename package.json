@@ -1,9 +1,11 @@
 {
   "license": "MIT",
   "scripts": {
-    "lint": "eslint --fix -- generator.ts"
+    "lint": "eslint --fix -- **/*.ts",
+    "test": "jest"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.24.0",
     "@babel/preset-typescript": "^7.23.3",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.12",
