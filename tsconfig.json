@@ -2,8 +2,7 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "es6",
-    "strict": true,
-    "skipLibCheck": true
+    "strict": true
   },
-  "include": ["./generator.ts"]
+  "include": ["./generator.ts", "./tests/*.ts"]
 }
