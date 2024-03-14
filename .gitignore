@@ -2,3 +2,4 @@ node_modules
 generator.js
 yarn-error.log
 coverage
+tests/*.js
