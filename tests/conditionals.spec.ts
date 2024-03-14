@@ -4,8 +4,8 @@ import { test } from '@jest/globals'
 
 const expected = 'arg1_greater_than_1'
 
-function fun (arg1: number): ReturnType<typeof generator> {
-  return generator(globalThis, function (_a) {
+function fun (this: any, arg1: number): ReturnType<typeof generator> {
+  return generator(this, function (_a) {
     switch (_a.label) {
       case 0:
         if (!(arg1 > 1)) return [3 /* break */, 2]
