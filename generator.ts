@@ -52,7 +52,6 @@ class State {
   /** A method that returns or throws the current completion value */
   sent(): Result {
     const arg = this.sendArg
-    this.sendArg = undefined
     if (arg == null) {
       return new Error('Nothing to send')
     }
@@ -178,8 +177,8 @@ class GeneratorCore {
               ) {
                 // Set the next location to go to in the generator body
                 this.state.label = nextLabel
+                break // Go to next label in the generator body
               }
-              break // Go to next label in the generator body
             }
 
             // If we're within a t/c/f
@@ -220,6 +219,9 @@ class GeneratorCore {
         op = [Opcode.CATCH, e]
         this.subIterator = undefined
       } finally {
+        if (this.state) {
+          this.state.sendArg = undefined
+        }
         this.isGeneratorExecuting = false
       }
     }

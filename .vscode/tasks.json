@@ -14,6 +14,13 @@
 			"problemMatcher": [],
 			"label": "npm: test",
 			"detail": "jest --coverage"
+		},
+		{
+			"type": "npm",
+			"script": "build",
+			"problemMatcher": [],
+			"label": "npm: build",
+			"detail": "tsc -p ."
 		}
 	]
 }

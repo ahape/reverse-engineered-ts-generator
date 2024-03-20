@@ -21,6 +21,7 @@ export const helper = function (thisArg, body) {
       }
     }
     function step (op) {
+      console.log(op, _)
       if (f) throw new TypeError('Generator is already executing.')
       while ((g && ((g = 0), op[0] && (_ = 0)), _)) {
         try {

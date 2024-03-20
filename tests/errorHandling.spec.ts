@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable no-fallthrough */
-// import { generator } from '../generator'
-import { helper } from './helper'
+import { generator } from '../generator'
 import { test } from '@jest/globals'
 
 const expected1 = 'arg1_greater_than_1'
@@ -10,7 +9,7 @@ const expected2 = 'done'
 function willThrow (): boolean { throw new Error() }
 function fun (this: any, arg1: number): Iterator<number> {
   let e_1
-  return helper(this, function (_a: any) {
+  return generator(this, function (_a: any) {
     switch (_a.label) {
       case 0:
         _a.trys.push([0, 5, 6, 8])
