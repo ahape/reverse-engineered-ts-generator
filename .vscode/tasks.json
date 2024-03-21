@@ -6,21 +6,21 @@
 			"script": "lint",
 			"problemMatcher": [],
 			"label": "npm: lint",
-			"detail": "eslint --fix -- **/*.ts"
+			"detail": "run lint"
 		},
 		{
 			"type": "npm",
 			"script": "test",
 			"problemMatcher": [],
 			"label": "npm: test",
-			"detail": "jest --coverage"
+			"detail": "run test"
 		},
 		{
 			"type": "npm",
 			"script": "build",
 			"problemMatcher": [],
 			"label": "npm: build",
-			"detail": "tsc -p ."
+			"detail": "run build"
 		}
 	]
 }

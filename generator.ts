@@ -115,6 +115,7 @@ class GeneratorCore {
           op = [opContains(op[0], Opcode.RETURN), subIteratorResult.value]
         }
         let tcfLabels: TryCatchFinallyLabels | undefined
+        console.log('here', op)
         const opcode = op[0]
         switch (opcode) {
           // NEXT and THROW both queue up the state.sent() value and
@@ -272,9 +273,6 @@ class GeneratorCore {
     if (!this.subIterator) {
       throw new Error('resultIterator not defined')
     }
-    const ret: { return: boolean, result?: Result } = {
-      return: false
-    }
     let iteratorFn: IteratorFunction | undefined
     if (opContains(opcode, Opcode.RETURN)) {
       iteratorFn = this.subIterator.return?.bind(this.subIterator)
@@ -287,13 +285,11 @@ class GeneratorCore {
     } else {
       iteratorFn = this.subIterator.next.bind(this.subIterator)
     }
-    if (iteratorFn) {
-      ret.result = iteratorFn.call(this.subIterator, op[1])
-      if (!ret.result?.done) {
-        ret.return = true
-      }
+    const result = iteratorFn?.(op[1])
+    return {
+      result,
+      return: !(result?.done)
     }
-    return ret
   }
 }
 

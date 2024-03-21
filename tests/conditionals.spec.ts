@@ -3,8 +3,10 @@ import { generator } from '../generator'
 import { test } from '@jest/globals'
 
 const expected = 'arg1_greater_than_1'
-
-function fun (this: any, arg1: number): ReturnType<typeof generator> {
+/**
+ * @link https://www.typescriptlang.org/play?target=1#code/GYVwdgxgLglg9mAVAAgOYFMwEYAUBDAJ1SwC5kwQBbAI3QIEpkBvAWAChlPkZhl8isyAHzIsjVhy5SAnjHQAbACbIARIWIB9VAXR4odDVAAWeMBqwqA3OykBfdraA
+ */
+function gen1 (this: any, arg1: number): ReturnType<typeof generator> {
   return generator(this, function (_a) {
     switch (_a.label) {
       case 0:
@@ -19,7 +21,7 @@ function fun (this: any, arg1: number): ReturnType<typeof generator> {
 }
 
 test('A generator with a basic if true->yield', () => {
-  const iter = fun(2)
+  const iter = gen1(2)
   let value = iter.next()
   expect(value.done).toBe(false)
   expect(value.value).toBe(expected)

@@ -5,9 +5,11 @@ import { test } from '@jest/globals'
 
 const expected1 = 'arg1_greater_than_1'
 const expected2 = 'done'
-
 function willThrow (): boolean { throw new Error() }
-function fun (this: any, arg1: number): Iterator<number> {
+/**
+ * @link https://www.typescriptlang.org/play?target=1#code/GYVwdgxgLglg9mABAdxgGzQFQBYCc7IAUAlAFyIBGccaApgIZKIDeiUeBiYtyiAorny4SiAL4BYAFChIsBACpEMwvVwBzAIzkwIALYVauYiymIzbXAE8Tk83cQxgiFeo2IAfIg3Hmp+-8sYWjQAE0QAIlVNAH01XAYoQ2j2RmiNcIBuP38JW38HJ0JUDBx8ImIfbPyzQOCw8O4AN0Nwqrtc9sQIeigIbGdaSrz-CAQAZxpaADo0ODVCQarRJRgwegxrX2H7WtCIkIRaVu3c0SA
+ */
+function gen1 (this: any, arg1: number): Iterator<number> {
   let e_1
   return generator(this, function (_a: any) {
     switch (_a.label) {
@@ -27,7 +29,7 @@ function fun (this: any, arg1: number): Iterator<number> {
       case 4: return [3 /* break */, 8]
       case 5:
         e_1 = _a.sent()
-        console.log(e_1)
+        console.assert(e_1)
         return [3 /* break */, 8]
       case 6: return [4 /* yield */, 'done']
       case 7:
@@ -39,7 +41,7 @@ function fun (this: any, arg1: number): Iterator<number> {
 }
 
 test('A generator with try/catch/finally blocks', () => {
-  const iter = fun(2)
+  const iter = gen1(2)
   let value = iter.next()
   expect(value.done).toBe(false)
   expect(value.value).toBe(expected1)
