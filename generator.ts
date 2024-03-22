@@ -115,7 +115,6 @@ class GeneratorCore {
           op = [opContains(op[0], Opcode.RETURN), subIteratorResult.value]
         }
         let tcfLabels: TryCatchFinallyLabels | undefined
-        console.log('here', op)
         const opcode = op[0]
         switch (opcode) {
           // NEXT and THROW both queue up the state.sent() value and
