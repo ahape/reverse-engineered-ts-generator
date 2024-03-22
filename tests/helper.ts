@@ -39,8 +39,7 @@ export const helper = function (thisArg, body) {
                 }
                 if (((y = 0), t))
                     op = [op[0] & 2, t.value];
-                console.log("here", op)
-                switch (op[0]) {
+                    switch (op[0]) {
                     case 0:
                     case 1:
                         t = op;

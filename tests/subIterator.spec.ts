@@ -37,7 +37,10 @@ function gen2 (this: any, arg1: number): ReturnType<typeof generator> {
 
 test('A generator that yields a sub-iterator', () => {
   const iter = gen2(2)
-  const res = iter.next()
+  let res = iter.next()
   expect(res.done).toBe(false)
   expect(res.value).toBe(expected)
+  res = iter.next()
+  expect(res.done).toBe(true)
+  expect(res.value).toBeUndefined()
 })

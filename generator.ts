@@ -109,7 +109,7 @@ class GeneratorCore {
 
         const subIteratorResult = this.tryRunSubIterator(op)
         if (subIteratorResult) {
-          if (subIteratorResult.done) {
+          if (!subIteratorResult.done) {
             return subIteratorResult
           }
           op = [opContains(op[0], Opcode.RETURN), subIteratorResult.value]
