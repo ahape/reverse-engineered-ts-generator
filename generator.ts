@@ -210,8 +210,8 @@ class GeneratorCore {
                 this.state.ops.pop()
               }
             }
+            // NOTE YIELDSTAR makes it here
             this.state.trys.pop()
-            // TODO what reaches this?
             continue // Re-enter engine with next op
         }
         op = this.body.call(this.thisArg, this.state)
